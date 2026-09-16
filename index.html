@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우리 집 냉장고</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 앱 헤더 -->
+    <header class="app-header">
+      <h1>🧊 우리 집 냉장고</h1>
+      <div class="header-actions">
+        <button type="button" id="btn-dining-out-trigger" class="btn-dining-out-trigger" title="오늘 외식할지 냉장고 요정에게 물어보기">
+          <span>🍽️ 외식할까요?</span>
+        </button>
+        <button type="button" id="btn-recipe-modal-trigger" class="btn-recipe-trigger">
+          <span>🍳 AI 레시피</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 가족 공유 냉장고 설정 (초대 코드 & Firestore) -->
+    <details class="family-share-card" id="family-share-card">
+      <summary class="family-share-summary">
+        <div class="summary-left">
+          <span>👨‍👩‍👧‍👦 가족과 공유하기</span>
+          <span id="share-status-badge" class="badge-status-share not-connected">개인 모드</span>
+        </div>
+      </summary>
+      <div class="family-share-body">
+        <p class="family-share-desc">
+          별도 로그인 없이, 같은 '초대 코드'를 입력한 가족/동거인과 동일한 냉장고 DB를 실시간으로 함께 관리할 수 있습니다.
+        </p>
+
+        <!-- 초대 코드 입력 및 연결 제어 패널 -->
+        <div class="share-code-control-panel">
+          <div class="code-input-row">
+            <input 
+              type="text" 
+              id="input-invite-code" 
+              placeholder="공유 초대 코드 입력 (예: FRIDGE-777)" 
+              autocomplete="off"
+              maxlength="25"
+            >
+            <button type="button" id="btn-family-share" class="btn-family-share">
+              <span>가족과 함꼐 보기</span>
+            </button>
+          </div>
+
+          <div class="code-action-buttons">
+            <button type="button" id="btn-generate-code" class="btn-secondary-share">
+              🎲 새 공유 코드 발급
+            </button>
+            <button type="button" id="btn-copy-code" class="btn-secondary-share hidden" title="초대 코드 클립보드 복사">
+              📋 초대 코드 복사
+            </button>
+            <button type="button" id="btn-disconnect-share" class="btn-secondary-share btn-danger-text hidden">
+              🔌 공유 해제 (개인 모드로 복귀)
+            </button>
+          </div>
+
+          <!-- 공유 활성화 상태 배너 -->
+          <div id="share-active-banner" class="share-active-banner hidden">
+            <div class="banner-status-indicator">
+              <span class="pulse-dot"></span>
+              <span>현재 <strong><span id="display-connected-code"></span></strong> 냉장고 공간을 가족과 실시간 공유 중입니다!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Firebase Firestore 연결 설정 접이식 박스 -->
+        <details class="firebase-config-box" id="firebase-config-details">
+          <summary class="firebase-config-summary">
+            <span>🔥 Firebase Firestore 연결 설정 (선택/커스텀)</span>
+            <span id="firebase-status-indicator" class="fb-status-tag">기본 연결</span>
+          </summary>
+          <div class="firebase-config-content">
+            <p class="firebase-config-desc">
+              본인 소유의 Firebase 프로젝트에서 Firestore Database(테스트 모드)를 만든 뒤, 프로젝트 설정의 <code>firebaseConfig</code> JSON을 붙여넣으세요.
+              <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer">Firebase Console ↗</a>
+            </p>
+            <textarea 
+              id="input-firebase-config" 
+              rows="3" 
+              placeholder='{\n  "apiKey": "AIzaSy...",\n  "projectId": "my-fridge-app",\n  "appId": "1:..."\n}'
+            ></textarea>
+            <div class="fb-config-btns">
+              <button type="button" id="btn-save-firebase-config" class="btn-fb-save">Firebase 설정 저장</button>
+              <button type="button" id="btn-reset-firebase-config" class="btn-fb-reset">기본 데모 설정으로 초기화</button>
+            </div>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <!-- AI Vision 설정 (API Key) -->
+    <details class="ai-settings-card" id="ai-settings">
+      <summary class="ai-settings-summary">
+        <span>⚙️ LLM Vision 설정 (API Key)</span>
+        <span id="api-key-status-badge" class="badge-status-key not-set">미등록</span>
+      </summary>
+      <div class="ai-settings-body">
+        <p class="ai-settings-desc">
+          무료로 제공되는 Gemini API를 사용하여 영수증과 식재료 사진에서 정보를 자동으로 추출합니다. 브라우저 localStorage에 안전하게 보관됩니다.
+        </p>
+        <a 
+          href="https://aistudio.google.com/app/apikey" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="ai-studio-link"
+          title="Google AI Studio에서 무료 API 키 발급받기 (새 창)"
+        >
+          🔑 Google AI Studio에서 무료 API 키 발급받기
+        </a>
+        <div class="api-key-input-row">
+          <input 
+            type="password" 
+            id="input-api-key" 
+            placeholder="Gemini API Key 입력 (예: AIzaSy...)" 
+            autocomplete="off"
+          >
+          <button type="button" id="btn-save-key" class="btn-key-save">저장</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 1. 우리 집 2도어 냉장고 그림 (좌: 냉동고 / 우: 냉장고) - 기본 열림 -->
+    <section class="fridge-section" aria-label="우리 집 2도어 냉장고">
+      <div id="fridge-appliance">
+        <!-- 2도어 그래픽 및 보관칸 탭이 동적으로 렌더링됩니다 -->
+      </div>
+    </section>
+
+    <!-- 2. 식재료 등록 퀵 액션 (냉장고/냉동고 클릭 및 본 버튼으로 등록 팝업 호출) -->
+    <section class="quick-register-section" aria-label="식재료 등록">
+      <button type="button" id="btn-open-register-modal" class="btn-quick-register">
+        <span class="btn-register-icon">➕</span>
+        <span class="btn-register-text">식재료 등록하기</span>
+        <span class="btn-register-hint">(냉장고·냉동고 클릭으로도 바로 등록)</span>
+      </button>
+    </section>
+
+    <!-- 3. 식재료 소진율 현황 (기본 접힌 상태, 펼치기 버튼 지원) -->
+    <section class="dashboard-section" aria-label="식재료 소진율 현황">
+      <div class="collapsible-card" id="dashboard-collapsible-card">
+        <button 
+          type="button" 
+          class="collapsible-header-btn" 
+          id="btn-toggle-dashboard" 
+          aria-expanded="false" 
+          aria-controls="dashboard-collapsible-body"
+        >
+          <div class="header-left">
+            <span class="header-icon">📊</span>
+            <span class="header-title">식재료 소진율 현황</span>
+            <span id="dashboard-summary-badge" class="app-badge">소진율 0%</span>
+          </div>
+          <div class="header-right">
+            <span class="toggle-label" id="dashboard-toggle-label">펼치기</span>
+            <span class="toggle-arrow">▼</span>
+          </div>
+        </button>
+        <div class="collapsible-body collapsed" id="dashboard-collapsible-body">
+          <div id="dashboard" class="dashboard-container">
+            <!-- 대시보드 카드가 렌더링됩니다 -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 보관 식재료 목록 영역 (기본 접힌 상태, 펼치기 버튼 지원) -->
+    <section class="list-section" aria-label="보관 식재료 목록">
+      <div class="collapsible-card" id="list-collapsible-card">
+        <button 
+          type="button" 
+          class="collapsible-header-btn" 
+          id="btn-toggle-list" 
+          aria-expanded="false" 
+          aria-controls="list-collapsible-body"
+        >
+          <div class="header-left">
+            <span class="header-icon" id="list-header-icon">🏠</span>
+            <span class="header-title" id="list-compartment-title">전체 보관 식재료 목록</span>
+            <span id="item-count-badge" class="app-badge">0개</span>
+          </div>
+          <div class="header-right">
+            <span class="toggle-label" id="list-toggle-label">펼치기</span>
+            <span class="toggle-arrow">▼</span>
+          </div>
+        </button>
+        <div class="collapsible-body collapsed" id="list-collapsible-body">
+          <!-- 정렬 및 보기 필터 바: 카테고리별(기본), 소비기한순, 구매일순 -->
+          <div class="list-filter-bar" id="list-filter-bar">
+            <button type="button" class="list-filter-btn active" data-filter="CATEGORY">
+              📁 카테고리별
+            </button>
+            <button type="button" class="list-filter-btn" data-filter="EXPIRY">
+              ⏳ 소비기한순
+            </button>
+            <button type="button" class="list-filter-btn" data-filter="PURCHASE">
+              📅 구매일순
+            </button>
+          </div>
+
+          <div id="inventory-list">
+            <!-- 식재료 아이템이 동적으로 렌더링됩니다 -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 이번달 식비 예산 현황 (1줄 월 예산 및 연/월/일 식비 지출 통계) -->
+    <section class="budget-section" aria-label="월 예산 및 식비 지출">
+      <div id="financial-section">
+        <!-- 1줄 예산 바 및 지출 통계가 렌더링됩니다 -->
+      </div>
+    </section>
+  </div>
+
+  <!-- 식재료 등록 팝업 모달 (냉장고/냉동고 클릭 시 또는 등록 버튼 클릭 시 열림) -->
+  <div id="ingredient-modal-container" class="ingredient-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-register-title">
+    <div class="ingredient-modal-dialog">
+      <div class="ingredient-modal-header">
+        <h2 class="modal-title" id="modal-register-title">
+          <span id="modal-title-icon">✨</span>
+          <span id="modal-title-text">식재료 등록</span>
+        </h2>
+        <button type="button" id="btn-close-ingredient-modal" class="btn-modal-close" aria-label="등록 창 닫기">✕</button>
+      </div>
+
+      <div class="ingredient-modal-body">
+        <!-- AI 영수증/사진 자동 채우기 -->
+        <div class="ai-scan-wrapper">
+          <label for="image-upload" class="ai-scan-btn" id="btn-scan-label">
+            <span class="scan-icon">📷</span>
+            <div class="scan-text-group">
+              <span class="scan-title">영수증 / 식재료 사진으로 자동 채우기</span>
+              <span class="scan-subtitle">가격, 보관칸, 유통기한까지 AI가 한 번에 인식</span>
+            </div>
+          </label>
+          <input 
+            type="file" 
+            id="image-upload" 
+            accept="image/*" 
+            capture="environment" 
+            class="file-input-hidden"
+          >
+        </div>
+
+        <!-- AI 피드백 배너 -->
+        <div id="ai-feedback-banner" class="ai-feedback-banner hidden" role="status">
+          <span class="feedback-icon">✨</span>
+          <div class="feedback-content">
+            <strong>AI 인식 완료!</strong>
+            <span>내용을 확인/수정한 뒤 아래 <strong>'+ 식재료 추가'</strong>를 눌러주세요.</span>
+          </div>
+        </div>
+
+        <form id="ingredient-form" class="ingredient-form">
+          <!-- 보관 위치 선택기 (냉동고 vs 냉장실) -->
+          <div class="form-group full-width">
+            <label>보관 위치 선택 *</label>
+            <div class="storage-type-selector" id="storage-type-selector">
+              <label class="storage-radio-label" id="label-storage-freezer">
+                <input type="radio" name="storageType" value="FREEZER">
+                ❄️ 냉동고 보관
+              </label>
+              <label class="storage-radio-label active-storage" id="label-storage-fridge">
+                <input type="radio" name="storageType" value="FRIDGE" checked>
+                🥬 냉장실 보관
+              </label>
+            </div>
+          </div>
+
+          <!-- 물품명 -->
+          <div class="form-group full-width">
+            <label for="input-name">물품명 *</label>
+            <input 
+              type="text" 
+              id="input-name" 
+              name="name" 
+              placeholder="예: 서울우유, 신선란, 냉동만두" 
+              required 
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="form-grid">
+            <!-- 1. 카테고리 (AI 자동 분류 뱃지 연동) -->
+            <div class="form-group">
+              <label for="input-category">
+                <span>카테고리</span>
+                <span id="ai-category-badge" class="ai-category-badge hidden">✨ AI 자동 분류</span>
+              </label>
+              <select id="input-category" name="category">
+                <option value="냉동">냉동</option>
+                <option value="달걀">달걀</option>
+                <option value="유제품">유제품</option>
+                <option value="곡물">곡물</option>
+                <option value="수산물">수산물</option>
+                <option value="반찬">반찬</option>
+                <option value="기타" selected>기타</option>
+              </select>
+            </div>
+
+            <!-- 2. 용량 -->
+            <div class="form-group">
+              <label for="input-capacity">용량</label>
+              <input 
+                type="text" 
+                id="input-capacity" 
+                name="capacity" 
+                placeholder="예: 1L, 10개, 500g"
+              >
+            </div>
+
+            <!-- 3. 구매 가격 (원 단위) -->
+            <div class="form-group">
+              <label for="input-price">구매 가격 (원)</label>
+              <input 
+                type="number" 
+                id="input-price" 
+                name="price" 
+                placeholder="예: 3500" 
+                min="0" 
+                step="100"
+              >
+            </div>
+
+            <!-- 4. 구매일 -->
+            <div class="form-group">
+              <label for="input-purchase-date">구매일</label>
+              <input 
+                type="date" 
+                id="input-purchase-date" 
+                name="purchaseDate"
+              >
+            </div>
+
+            <!-- 5. 유통기한 (판매권장기한) -->
+            <div class="form-group">
+              <label for="input-expiry">
+                <span>유통기한 (판매기한)</span>
+              </label>
+              <input 
+                type="date" 
+                id="input-expiry" 
+                name="expiryDate"
+              >
+            </div>
+
+            <!-- 6. 소비기한 (실제 섭취기한, 추천 툴팁 포함) -->
+            <div class="form-group">
+              <div class="label-with-tooltip">
+                <label for="input-consumption">소비기한 (섭취기한)</label>
+                <div class="tooltip-trigger-wrapper">
+                  <button 
+                    type="button" 
+                    class="btn-tooltip-trigger" 
+                    id="btn-consumption-tooltip-trigger" 
+                    aria-label="소비기한 추천 정보 보기"
+                    aria-expanded="false"
+                  >
+                    ℹ️ <span id="tooltip-summary-tag">추천: +21일</span>
+                  </button>
+                  <div class="tooltip-popup" id="consumption-tooltip-popup" role="tooltip">
+                    <div class="tooltip-header">
+                      <span id="tooltip-food-name">💡 소비기한 추천</span>
+                      <span id="tooltip-days-badge">+21일</span>
+                    </div>
+                    <div class="tooltip-reason" id="tooltip-reason-text">식약처 기준 안전 섭취 기한</div>
+                    <div class="tooltip-guidance" id="tooltip-guidance-text">개봉 전 냉장 보관 시 권장</div>
+                    <button type="button" class="btn-tooltip-apply" id="btn-apply-recommended-date">
+                      추천 소비기한 적용
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <input 
+                type="date" 
+                id="input-consumption" 
+                name="consumptionDate"
+              >
+            </div>
+
+            <!-- 날짜 순서 및 관계 안내 가이드 -->
+            <div class="date-relation-guide" id="date-relation-guide">
+              <span class="guide-icon">💡</span>
+              <span class="guide-text">날짜 순서: <strong>구매일 ≤ 유통기한 ≤ 소비기한</strong> (유통기한 설정 시 소비기한 자동 권장 적용)</span>
+            </div>
+          </div>
+
+          <!-- 등록 버튼 -->
+          <button type="submit" class="btn-submit" id="btn-submit-ingredient">
+            <span>+ 식재료 추가</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- '외식할까요?' 판정 모달 컨테이너 -->
+  <div id="dining-modal-container" class="dining-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dining-modal-title">
+    <div class="dining-modal-dialog">
+      <div class="dining-modal-header">
+        <h2 class="modal-title" id="dining-modal-title">
+          <span>🍽️ 오늘 외식할까요?</span>
+        </h2>
+        <button type="button" class="btn-close-modal" id="btn-close-dining-modal" aria-label="닫기">✕</button>
+      </div>
+      <div class="dining-modal-body">
+        <!-- 냉장고 소진율 현황 카드 -->
+        <div class="dining-status-card" id="dining-status-card"></div>
+
+        <!-- 먹고 싶은 음식 입력 폼 -->
+        <form id="dining-ask-form" class="dining-ask-form">
+          <label for="input-craving-food" class="craving-label">
+            <span>지금 가장 먹고 싶은 음식은 무엇인가요? 🤤</span>
+          </label>
+          <div class="craving-input-group">
+            <input 
+              type="text" 
+              id="input-craving-food" 
+              name="cravingFood" 
+              placeholder="예: 치킨, 삼겹살, 마라탕, 초밥, 피자..." 
+              autocomplete="off"
+              maxlength="40"
+              required
+            >
+            <button type="submit" class="btn-submit-craving" id="btn-submit-craving">
+              <span>물어보기 ✨</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- 판정 결과 영역 -->
+        <div id="dining-verdict-container" class="dining-verdict-container hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 레시피 추천 모달 컨테이너 -->
+  <div id="recipe-modal-container" class="hidden"></div>
+
+  <!-- AI 분석 로딩 스피너 오버레이 -->
+  <div id="ai-loading-overlay" class="ai-loading-overlay hidden" aria-live="assertive" aria-busy="false">
+    <div class="spinner-box">
+      <div class="spinner-animation"></div>
+      <p class="spinner-main-text" id="spinner-title">🤖 AI가 분석하고 있습니다...</p>
+      <p class="spinner-sub-text" id="spinner-subtitle">잠시만 기다려 주세요</p>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (무로그인 Firestore 실시간 동기화) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <!-- 스크립트 로드 -->
+  <script src="js/firebaseSync.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/expiryHelper.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/llm.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
