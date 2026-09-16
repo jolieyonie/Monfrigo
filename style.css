@@ -2889,8 +2889,35 @@ body {
   cursor: pointer;
 }
 
-.ai-scan-wrapper { margin-bottom: var(--space-sm); }
-.file-input-hidden { display: none; }
+.ai-scan-wrapper { 
+  margin-bottom: var(--space-sm); 
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.ai-scan-wrapper.drag-over {
+  border: 2px dashed #3b82f6;
+  background-color: #eff6ff;
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+/* 파일 인풋이 display: none 이면 모바일 사파리/크롬 등에서 라벨 클릭 시 파일 탐색기가 차단되는 문제 방지 */
+.file-input-hidden {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
 
 .ai-scan-grid {
   display: grid;
@@ -2907,6 +2934,10 @@ body {
   border: 1.5px dashed #60a5fa;
   border-radius: var(--radius-md);
   cursor: pointer;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
   transition: all var(--transition-fast);
 }
 
@@ -2930,10 +2961,112 @@ body {
   border-color: #9333ea;
 }
 
+/* 라벨 내부의 텍스트나 아이콘 클릭 시 라벨 이벤트가 끊기지 않도록 방지 */
+.ai-scan-btn * {
+  pointer-events: none;
+}
+
 .scan-icon { font-size: 1.4rem; flex-shrink: 0; }
 .scan-text-group { display: flex; flex-direction: column; overflow: hidden; }
 .scan-title { font-size: 0.82rem; font-weight: 700; color: var(--primary); white-space: nowrap; }
 .scan-subtitle { font-size: 0.68rem; color: var(--text-secondary); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+
+/* 첨부된 사진 미리보기 카드 */
+.attached-image-preview-container {
+  margin-top: var(--space-xs);
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.preview-thumbnail-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-thumb-img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.preview-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.preview-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #e0f2fe;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.preview-file-name {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.preview-ai-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.preview-ai-status.analyzing {
+  color: #2563eb;
+}
+
+.preview-ai-status.success {
+  color: #16a34a;
+}
+
+.preview-ai-status.failed {
+  color: #ea580c;
+}
+
+.btn-remove-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.btn-remove-thumb:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
 
 @media (max-width: 360px) {
   .ai-scan-grid {

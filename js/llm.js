@@ -92,6 +92,63 @@ const LLMService = (() => {
   };
 
   /**
+   * 대용량 이미지 파일 자동 압축 (브라우저 Canvas 지원 환경)
+   * 스마트폰 초고화질 사진(10MB+) 업로드 시 메모리 초과/지연 방지
+   */
+  const compressImageIfNeeded = (file, maxWidth = 1600, maxHeight = 1600, quality = 0.85) => {
+    return new Promise((resolve) => {
+      if (!file || typeof Image === 'undefined' || typeof document === 'undefined') {
+        return resolve(file);
+      }
+      if (file.type && !file.type.startsWith('image/')) {
+        return resolve(file);
+      }
+      if (file.size && file.size <= 1024 * 1024) {
+        return resolve(file);
+      }
+
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let width = img.width;
+        let height = img.height;
+        if (!width || !height) return resolve(file);
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (blob && blob.size < file.size) {
+            resolve(blob);
+          } else {
+            resolve(file);
+          }
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file);
+      };
+      img.src = url;
+    });
+  };
+
+  /**
    * 영수증 및 식재료 분석 프롬프트 (Prompt 5 지시사항 준수)
    */
   const createVisionPrompt = () => {
@@ -191,7 +248,8 @@ const LLMService = (() => {
       throw new Error('분석할 이미지 파일이 선택되지 않았습니다.');
     }
 
-    const { base64Data, mimeType } = await encodeFileToBase64(file);
+    const processedFile = await compressImageIfNeeded(file);
+    const { base64Data, mimeType } = await encodeFileToBase64(processedFile);
 
     if (apiKey.startsWith('sk-')) {
       // OpenAI Vision API 호환
@@ -221,7 +279,13 @@ const LLMService = (() => {
         let errMsg = `OpenAI API 오류 (${response.status})`;
         try {
           const errData = await response.json();
-          if (errData?.error?.message) errMsg += `: ${errData.error.message}`;
+          if (errData?.error?.code === 'credit_balance_exhausted' || errData?.error?.type === 'insufficient_quota') {
+            errMsg = 'OpenAI API 크레딧 잔액이 소진되었습니다 (잔액 부족: credit_balance_exhausted).\nOpenAI 계정에 크레딧을 충전하시거나 유효한 API Key로 교체해 주세요.';
+          } else if (errData?.error?.code === 'invalid_api_key') {
+            errMsg = '유효하지 않은 OpenAI API Key입니다. key.env 파일을 확인해 주세요.';
+          } else if (errData?.error?.message) {
+            errMsg += `: ${errData.error.message}`;
+          }
         } catch (_) {}
         throw new Error(errMsg);
       }

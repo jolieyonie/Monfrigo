@@ -48,6 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const apiKeyStatusBadge = document.getElementById('api-key-status-badge');
   const imageUploadInput = document.getElementById('image-upload');
   const galleryUploadInput = document.getElementById('image-upload-gallery');
+  const aiScanWrapper = document.getElementById('ai-scan-wrapper');
+  const attachedPreviewContainer = document.getElementById('attached-image-preview-container');
+  const attachedImagePreview = document.getElementById('attached-image-preview');
+  const previewFileName = document.getElementById('preview-file-name');
+  const previewAiStatus = document.getElementById('preview-ai-status');
+  const btnRemoveAttachedImage = document.getElementById('btn-remove-attached-image');
   const aiFeedbackBanner = document.getElementById('ai-feedback-banner');
   const aiLoadingOverlay = document.getElementById('ai-loading-overlay');
   const spinnerTitle = document.getElementById('spinner-title');
@@ -181,6 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ingredientModalContainer.classList.add('hidden');
     document.body.style.overflow = '';
     aiFeedbackBanner?.classList.add('hidden');
+    if (typeof resetAttachedPreview === 'function') {
+      resetAttachedPreview();
+    }
   };
 
   /**
@@ -1265,17 +1274,56 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
+   * 첨부 사진 미리보기 및 상태 카드 제어
+   */
+  const showAttachedPreview = (file) => {
+    if (!attachedPreviewContainer || !attachedImagePreview) return;
+    try {
+      const url = URL.createObjectURL(file);
+      attachedImagePreview.src = url;
+      if (previewFileName) {
+        previewFileName.textContent = file.name || '촬영 사진';
+      }
+      if (previewAiStatus) {
+        previewAiStatus.textContent = '🤖 AI 분석 중...';
+        previewAiStatus.className = 'preview-ai-status analyzing';
+      }
+      attachedPreviewContainer.classList.remove('hidden');
+    } catch (_) {}
+  };
+
+  const resetAttachedPreview = () => {
+    if (attachedPreviewContainer) attachedPreviewContainer.classList.add('hidden');
+    if (attachedImagePreview) attachedImagePreview.src = '';
+    if (previewFileName) previewFileName.textContent = '';
+    if (previewAiStatus) {
+      previewAiStatus.textContent = '';
+      previewAiStatus.className = 'preview-ai-status';
+    }
+    if (imageUploadInput) imageUploadInput.value = '';
+    if (galleryUploadInput) galleryUploadInput.value = '';
+  };
+
+  btnRemoveAttachedImage?.addEventListener('click', () => {
+    resetAttachedPreview();
+  });
+
+  /**
    * AI 영수증/식재료 사진 자동 분석 공통 처리기 (카메라 & 갤러리)
    */
   const handleImageFileAnalysis = async (file, sourceInput) => {
     if (!file) return;
 
+    // 1. 즉시 썸네일 미리보기 표시 (시각적 피드백 제공)
+    showAttachedPreview(file);
+
     const apiKey = LLMService.getApiKey();
     if (!apiKey) {
-      alert('LLM API Key가 설정되지 않았습니다.\n상단의 [⚙️ LLM Vision 설정]을 열어 API Key를 입력 후 저장해 주세요.');
-      if (aiSettingsDetails) aiSettingsDetails.open = true;
-      inputApiKey?.focus();
-      if (sourceInput) sourceInput.value = '';
+      alert('LLM API Key가 설정되지 않았습니다.\nkey.env 파일에 API 키를 등록해 주세요.');
+      if (previewAiStatus) {
+        previewAiStatus.textContent = '⚠️ API Key 없음 (직접 입력 가능)';
+        previewAiStatus.className = 'preview-ai-status failed';
+      }
       return;
     }
 
@@ -1314,13 +1362,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       highlightFields([inputName, inputCategory, inputCapacity, inputPrice, inputPurchaseDate, inputExpiry, inputConsumption]);
       aiFeedbackBanner.classList.remove('hidden');
+      if (previewAiStatus) {
+        previewAiStatus.textContent = '✨ AI 인식 완료';
+        previewAiStatus.className = 'preview-ai-status success';
+      }
       inputName.focus();
     } catch (err) {
-      console.error(err);
-      alert('이미지 분석 중 오류가 발생했습니다: ' + err.message);
+      console.error('[AI Analysis Error]', err);
+      if (previewAiStatus) {
+        previewAiStatus.textContent = '⚠️ 분석 실패 (직접 입력 가능)';
+        previewAiStatus.className = 'preview-ai-status failed';
+      }
+      alert('식재료 사진 분석 안내:\n' + err.message + '\n\n(첨부된 사진을 보며 아래 항목을 직접 입력하실 수 있습니다.)');
     } finally {
       aiLoadingOverlay.classList.add('hidden');
-      if (sourceInput) sourceInput.value = '';
     }
   };
 
@@ -1334,6 +1389,47 @@ document.addEventListener('DOMContentLoaded', () => {
   galleryUploadInput?.addEventListener('change', (event) => {
     const file = event.target.files?.[0];
     if (file) handleImageFileAnalysis(file, galleryUploadInput);
+  });
+
+  // 3. 드래그 앤 드롭 지원 (PC 브라우저에서 이미지 파일을 모달/스캔 영역에 끌어다 놓기)
+  if (aiScanWrapper) {
+    ['dragenter', 'dragover'].forEach(name => {
+      aiScanWrapper.addEventListener(name, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        aiScanWrapper.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+      aiScanWrapper.addEventListener(name, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        aiScanWrapper.classList.remove('drag-over');
+      });
+    });
+
+    aiScanWrapper.addEventListener('drop', (e) => {
+      const file = e.dataTransfer?.files?.[0];
+      if (file && file.type && file.type.startsWith('image/')) {
+        handleImageFileAnalysis(file);
+      }
+    });
+  }
+
+  // 4. 클립보드 이미지 붙여넣기(Ctrl+V) 지원
+  ingredientModalContainer?.addEventListener('paste', (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type && item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          handleImageFileAnalysis(file);
+          break;
+        }
+      }
+    }
   });
 
   /**

@@ -72,8 +72,8 @@
       </div>
     </details>
 
-    <!-- AI Vision 설정 (OpenAI gpt-4o-mini 기본 연동) -->
-    <details class="ai-settings-card" id="ai-settings">
+    <!-- AI Vision 설정 (OpenAI gpt-4o-mini 기본 연동 - UI에서 완전 숨김 처리) -->
+    <details class="ai-settings-card hidden" id="ai-settings" style="display: none !important;">
       <summary class="ai-settings-summary">
         <span>⚙️ LLM Vision 설정</span>
         <span id="api-key-status-badge" class="badge-status-key is-set">🟢 자동 연동됨 (OpenAI)</span>
@@ -200,7 +200,7 @@
 
       <div class="ingredient-modal-body">
         <!-- AI 영수증/사진 자동 채우기 (카메라 즉시 촬영 & 갤러리 앨범 불러오기) -->
-        <div class="ai-scan-wrapper">
+        <div class="ai-scan-wrapper" id="ai-scan-wrapper">
           <div class="ai-scan-grid">
             <!-- 1. 카메라 즉시 촬영 -->
             <label for="image-upload" class="ai-scan-btn btn-camera-scan" id="btn-scan-label">
@@ -209,14 +209,14 @@
                 <span class="scan-title">카메라 촬영</span>
                 <span class="scan-subtitle">즉시 찍어 자동 입력</span>
               </div>
+              <input 
+                type="file" 
+                id="image-upload" 
+                accept="image/*" 
+                capture="environment" 
+                class="file-input-hidden"
+              >
             </label>
-            <input 
-              type="file" 
-              id="image-upload" 
-              accept="image/*" 
-              capture="environment" 
-              class="file-input-hidden"
-            >
 
             <!-- 2. 갤러리에서 기존 사진 불러오기 -->
             <label for="image-upload-gallery" class="ai-scan-btn btn-gallery-scan" id="btn-gallery-scan-label">
@@ -225,13 +225,28 @@
                 <span class="scan-title">갤러리 사진</span>
                 <span class="scan-subtitle">저장된 사진 불러오기</span>
               </div>
+              <input 
+                type="file" 
+                id="image-upload-gallery" 
+                accept="image/*" 
+                class="file-input-hidden"
+              >
             </label>
-            <input 
-              type="file" 
-              id="image-upload-gallery" 
-              accept="image/*" 
-              class="file-input-hidden"
-            >
+          </div>
+
+          <!-- 첨부된 사진 미리보기 및 상태 카드 -->
+          <div id="attached-image-preview-container" class="attached-image-preview-container hidden">
+            <div class="preview-thumbnail-box">
+              <img id="attached-image-preview" src="" alt="첨부 사진 미리보기" class="preview-thumb-img">
+              <div class="preview-info-col">
+                <div class="preview-title-row">
+                  <span class="preview-badge">📷 사진 첨부됨</span>
+                  <span id="preview-file-name" class="preview-file-name">photo.jpg</span>
+                </div>
+                <span id="preview-ai-status" class="preview-ai-status">분석 대기 중</span>
+              </div>
+              <button type="button" id="btn-remove-attached-image" class="btn-remove-thumb" title="사진 첨부 취소">✕</button>
+            </div>
           </div>
         </div>
 
