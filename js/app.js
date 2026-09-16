@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSaveKey = document.getElementById('btn-save-key');
   const apiKeyStatusBadge = document.getElementById('api-key-status-badge');
   const imageUploadInput = document.getElementById('image-upload');
+  const galleryUploadInput = document.getElementById('image-upload-gallery');
   const aiFeedbackBanner = document.getElementById('ai-feedback-banner');
   const aiLoadingOverlay = document.getElementById('ai-loading-overlay');
   const spinnerTitle = document.getElementById('spinner-title');
@@ -1264,10 +1265,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * AI 영수증/사진 자동 채우기
+   * AI 영수증/식재료 사진 자동 분석 공통 처리기 (카메라 & 갤러리)
    */
-  imageUploadInput.addEventListener('change', async (event) => {
-    const file = event.target.files?.[0];
+  const handleImageFileAnalysis = async (file, sourceInput) => {
     if (!file) return;
 
     const apiKey = LLMService.getApiKey();
@@ -1275,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('LLM API Key가 설정되지 않았습니다.\n상단의 [⚙️ LLM Vision 설정]을 열어 API Key를 입력 후 저장해 주세요.');
       if (aiSettingsDetails) aiSettingsDetails.open = true;
       inputApiKey?.focus();
-      imageUploadInput.value = '';
+      if (sourceInput) sourceInput.value = '';
       return;
     }
 
@@ -1320,8 +1320,20 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('이미지 분석 중 오류가 발생했습니다: ' + err.message);
     } finally {
       aiLoadingOverlay.classList.add('hidden');
-      imageUploadInput.value = '';
+      if (sourceInput) sourceInput.value = '';
     }
+  };
+
+  // 1. 카메라 즉시 촬영 이벤트
+  imageUploadInput?.addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    if (file) handleImageFileAnalysis(file, imageUploadInput);
+  });
+
+  // 2. 갤러리/앨범 사진 선택 이벤트
+  galleryUploadInput?.addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    if (file) handleImageFileAnalysis(file, galleryUploadInput);
   });
 
   /**

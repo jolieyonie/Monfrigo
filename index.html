@@ -199,22 +199,40 @@
       </div>
 
       <div class="ingredient-modal-body">
-        <!-- AI 영수증/사진 자동 채우기 -->
+        <!-- AI 영수증/사진 자동 채우기 (카메라 즉시 촬영 & 갤러리 앨범 불러오기) -->
         <div class="ai-scan-wrapper">
-          <label for="image-upload" class="ai-scan-btn" id="btn-scan-label">
-            <span class="scan-icon">📷</span>
-            <div class="scan-text-group">
-              <span class="scan-title">영수증 / 식재료 사진으로 자동 채우기</span>
-              <span class="scan-subtitle">가격, 보관칸, 유통기한까지 AI가 한 번에 인식</span>
-            </div>
-          </label>
-          <input 
-            type="file" 
-            id="image-upload" 
-            accept="image/*" 
-            capture="environment" 
-            class="file-input-hidden"
-          >
+          <div class="ai-scan-grid">
+            <!-- 1. 카메라 즉시 촬영 -->
+            <label for="image-upload" class="ai-scan-btn btn-camera-scan" id="btn-scan-label">
+              <span class="scan-icon">📷</span>
+              <div class="scan-text-group">
+                <span class="scan-title">카메라 촬영</span>
+                <span class="scan-subtitle">즉시 찍어 자동 입력</span>
+              </div>
+            </label>
+            <input 
+              type="file" 
+              id="image-upload" 
+              accept="image/*" 
+              capture="environment" 
+              class="file-input-hidden"
+            >
+
+            <!-- 2. 갤러리에서 기존 사진 불러오기 -->
+            <label for="image-upload-gallery" class="ai-scan-btn btn-gallery-scan" id="btn-gallery-scan-label">
+              <span class="scan-icon">🖼️</span>
+              <div class="scan-text-group">
+                <span class="scan-title">갤러리 사진</span>
+                <span class="scan-subtitle">저장된 사진 불러오기</span>
+              </div>
+            </label>
+            <input 
+              type="file" 
+              id="image-upload-gallery" 
+              accept="image/*" 
+              class="file-input-hidden"
+            >
+          </div>
         </div>
 
         <!-- AI 피드백 배너 -->

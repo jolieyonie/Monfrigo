@@ -295,7 +295,7 @@ const FirebaseSync = (() => {
   };
 
   // 모듈 로드 시 자동 초기화 시도
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
     window.addEventListener('DOMContentLoaded', () => {
       initFirebase();
     });

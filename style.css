@@ -2892,11 +2892,17 @@ body {
 .ai-scan-wrapper { margin-bottom: var(--space-sm); }
 .file-input-hidden { display: none; }
 
+.ai-scan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xs);
+}
+
 .ai-scan-btn {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
+  gap: 8px;
+  padding: 9px 10px;
   background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
   border: 1.5px dashed #60a5fa;
   border-radius: var(--radius-md);
@@ -2907,12 +2913,33 @@ body {
 .ai-scan-btn:hover {
   background: linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%);
   border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
-.scan-icon { font-size: 1.5rem; }
-.scan-text-group { display: flex; flex-direction: column; }
-.scan-title { font-size: 0.85rem; font-weight: 700; color: var(--primary); }
-.scan-subtitle { font-size: 0.7rem; color: var(--text-secondary); }
+.ai-scan-btn.btn-gallery-scan {
+  background: linear-gradient(135deg, #fdf4ff 0%, #eff6ff 100%);
+  border-color: #c084fc;
+}
+
+.ai-scan-btn.btn-gallery-scan .scan-title {
+  color: #7e22ce;
+}
+
+.ai-scan-btn.btn-gallery-scan:hover {
+  background: linear-gradient(135deg, #fae8ff 0%, #dbeafe 100%);
+  border-color: #9333ea;
+}
+
+.scan-icon { font-size: 1.4rem; flex-shrink: 0; }
+.scan-text-group { display: flex; flex-direction: column; overflow: hidden; }
+.scan-title { font-size: 0.82rem; font-weight: 700; color: var(--primary); white-space: nowrap; }
+.scan-subtitle { font-size: 0.68rem; color: var(--text-secondary); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+
+@media (max-width: 360px) {
+  .ai-scan-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 .ai-feedback-banner {
   display: flex;
