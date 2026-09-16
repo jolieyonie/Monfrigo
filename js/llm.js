@@ -9,14 +9,19 @@ const LLMService = (() => {
   const VALID_CATEGORIES = ['냉동', '달걀', '유제품', '곡물', '수산물', '반찬', '기타'];
 
   /**
-   * 로컬 스토리지에서 저장된 API Key 조회
+   * 로컬 스토리지 또는 key.env(ENV_CONFIG)에서 API Key 조회
    * @returns {string}
    */
   const getApiKey = () => {
     try {
+      // 1. key.env에서 로드된 기본 OpenAI API 키 우선 적용
+      if (typeof window !== 'undefined' && window.ENV_CONFIG?.OPENAI_API_KEY) {
+        return window.ENV_CONFIG.OPENAI_API_KEY;
+      }
+      // 2. localStorage에 저장된 API Key
       return localStorage.getItem(STORAGE_KEY_API_KEY) || '';
     } catch (e) {
-      console.error('[LLMService] Failed to read API key from localStorage', e);
+      console.error('[LLMService] Failed to read API key', e);
       return '';
     }
   };

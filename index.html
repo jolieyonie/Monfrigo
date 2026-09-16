@@ -25,13 +25,13 @@
     <details class="family-share-card" id="family-share-card">
       <summary class="family-share-summary">
         <div class="summary-left">
-          <span>👨‍👩‍👧‍👦 가족과 공유하기</span>
+          <span>👨‍👩‍👧‍👦 가족과 함께 보기</span>
           <span id="share-status-badge" class="badge-status-share not-connected">개인 모드</span>
         </div>
       </summary>
       <div class="family-share-body">
         <p class="family-share-desc">
-          별도 로그인 없이, 같은 '초대 코드'를 입력한 가족/동거인과 동일한 냉장고 DB를 실시간으로 함께 관리할 수 있습니다.
+          별도 로그인 없이, 같은 '초대 코드'를 입력한 가족/동거인과 클라우드 DB를 통해 동일한 냉장고를 실시간으로 함께 관리합니다.
         </p>
 
         <!-- 초대 코드 입력 및 연결 제어 패널 -->
@@ -45,7 +45,7 @@
               maxlength="25"
             >
             <button type="button" id="btn-family-share" class="btn-family-share">
-              <span>가족과 함꼐 보기</span>
+              <span>가족과 함께 보기</span>
             </button>
           </div>
 
@@ -69,56 +69,24 @@
             </div>
           </div>
         </div>
-
-        <!-- Firebase Firestore 연결 설정 접이식 박스 -->
-        <details class="firebase-config-box" id="firebase-config-details">
-          <summary class="firebase-config-summary">
-            <span>🔥 Firebase Firestore 연결 설정 (선택/커스텀)</span>
-            <span id="firebase-status-indicator" class="fb-status-tag">기본 연결</span>
-          </summary>
-          <div class="firebase-config-content">
-            <p class="firebase-config-desc">
-              본인 소유의 Firebase 프로젝트에서 Firestore Database(테스트 모드)를 만든 뒤, 프로젝트 설정의 <code>firebaseConfig</code> JSON을 붙여넣으세요.
-              <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer">Firebase Console ↗</a>
-            </p>
-            <textarea 
-              id="input-firebase-config" 
-              rows="3" 
-              placeholder='{\n  "apiKey": "AIzaSy...",\n  "projectId": "my-fridge-app",\n  "appId": "1:..."\n}'
-            ></textarea>
-            <div class="fb-config-btns">
-              <button type="button" id="btn-save-firebase-config" class="btn-fb-save">Firebase 설정 저장</button>
-              <button type="button" id="btn-reset-firebase-config" class="btn-fb-reset">기본 데모 설정으로 초기화</button>
-            </div>
-          </div>
-        </details>
       </div>
     </details>
 
-    <!-- AI Vision 설정 (API Key) -->
+    <!-- AI Vision 설정 (OpenAI gpt-4o-mini 기본 연동) -->
     <details class="ai-settings-card" id="ai-settings">
       <summary class="ai-settings-summary">
-        <span>⚙️ LLM Vision 설정 (API Key)</span>
-        <span id="api-key-status-badge" class="badge-status-key not-set">미등록</span>
+        <span>⚙️ LLM Vision 설정</span>
+        <span id="api-key-status-badge" class="badge-status-key is-set">🟢 자동 연동됨 (OpenAI)</span>
       </summary>
       <div class="ai-settings-body">
         <p class="ai-settings-desc">
-          무료로 제공되는 Gemini API를 사용하여 영수증과 식재료 사진에서 정보를 자동으로 추출합니다. 브라우저 localStorage에 안전하게 보관됩니다.
+          <code>key.env</code>의 OpenAI Vision(gpt-4o-mini) API 키가 기본으로 탑재되어 있어, 별도의 키 입력 없이 식재료 사진이나 영수증을 즉시 촬영/업로드하여 분석할 수 있습니다.
         </p>
-        <a 
-          href="https://aistudio.google.com/app/apikey" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          class="ai-studio-link"
-          title="Google AI Studio에서 무료 API 키 발급받기 (새 창)"
-        >
-          🔑 Google AI Studio에서 무료 API 키 발급받기
-        </a>
         <div class="api-key-input-row">
           <input 
             type="password" 
             id="input-api-key" 
-            placeholder="Gemini API Key 입력 (예: AIzaSy...)" 
+            placeholder="기본 OpenAI API Key 연동 완료 (직접 변경 시 입력)" 
             autocomplete="off"
           >
           <button type="button" id="btn-save-key" class="btn-key-save">저장</button>
@@ -458,6 +426,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <!-- 스크립트 로드 -->
+  <script src="js/env.js"></script>
   <script src="js/firebaseSync.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/expiryHelper.js"></script>

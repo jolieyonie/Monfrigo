@@ -1071,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * "가족과 함꼐 보기" 클릭 시 초대 코드 연결 핸들러
+   * "가족과 함께 보기" 클릭 시 초대 코드 연결 핸들러
    */
   async function handleConnectShare() {
     const code = inputInviteCode?.value.trim().toUpperCase();
@@ -1107,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       if (btnFamilyShare) {
         btnFamilyShare.disabled = false;
-        btnFamilyShare.innerHTML = '<span>가족과 함꼐 보기</span>';
+        btnFamilyShare.innerHTML = '<span>가족과 함께 보기</span>';
       }
     }
   }
@@ -1213,14 +1213,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /**
-   * API Key UI 동기화
+   * API Key UI 동기화 (key.env 기본 OpenAI 키 우선 반영)
    */
   const syncApiKeyUI = () => {
+    const hasDefaultKey = Boolean(typeof window !== 'undefined' && window.ENV_CONFIG?.OPENAI_API_KEY);
     const savedKey = LLMService.getApiKey();
+
     if (savedKey) {
-      inputApiKey.value = savedKey;
-      apiKeyStatusBadge.textContent = '설정됨';
-      apiKeyStatusBadge.className = 'badge-status-key is-set';
+      if (hasDefaultKey && savedKey === window.ENV_CONFIG.OPENAI_API_KEY) {
+        inputApiKey.value = savedKey.substring(0, 8) + '••••••••••••' + savedKey.slice(-4);
+        apiKeyStatusBadge.textContent = '🟢 OpenAI 기본 연동';
+        apiKeyStatusBadge.className = 'badge-status-key is-set';
+      } else {
+        inputApiKey.value = savedKey;
+        apiKeyStatusBadge.textContent = '설정됨';
+        apiKeyStatusBadge.className = 'badge-status-key is-set';
+      }
     } else {
       inputApiKey.value = '';
       apiKeyStatusBadge.textContent = '미등록';
@@ -1271,7 +1279,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    spinnerTitle.textContent = '🤖 Gemini Vision AI가 식재료를 정밀 분석하고 있습니다...';
+    spinnerTitle.textContent = apiKey.startsWith('sk-')
+      ? '🤖 OpenAI Vision(gpt-4o-mini)이 식재료를 정밀 분석하고 있습니다...'
+      : '🤖 Gemini Vision AI가 식재료를 정밀 분석하고 있습니다...';
     spinnerSubtitle.textContent = '물품명, 카테고리, 용량, 유통기한 자동 추출 중';
     aiLoadingOverlay.classList.remove('hidden');
     aiFeedbackBanner.classList.add('hidden');
@@ -1523,6 +1533,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 초기 실행
   syncApiKeyUI();
+  initShareRoom();
   autoRecommendExpiryDate(true);
   updateView();
 });

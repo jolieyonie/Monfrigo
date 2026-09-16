@@ -74,6 +74,18 @@ const FirebaseSync = (() => {
   };
 
   /**
+   * 개발자 일원화 Firebase 설정 가져오기
+   */
+  const getDeveloperFirebaseConfig = () => {
+    if (typeof window !== 'undefined' && window.ENV_CONFIG?.FIREBASE_CONFIG) {
+      return window.ENV_CONFIG.FIREBASE_CONFIG;
+    }
+    const custom = getSavedConfig();
+    if (custom) return custom;
+    return DEFAULT_FIREBASE_CONFIG;
+  };
+
+  /**
    * Firebase 인스턴스 초기화
    */
   const initFirebase = () => {
@@ -83,7 +95,7 @@ const FirebaseSync = (() => {
       return false;
     }
 
-    const config = getSavedConfig() || DEFAULT_FIREBASE_CONFIG;
+    const config = getDeveloperFirebaseConfig();
 
     try {
       // 이미 초기화된 앱이 있으면 재사용하거나 기존 앱 사용
